@@ -4,6 +4,7 @@ import (
 	"crowdfunding/helper"
 	"crowdfunding/user"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"net/http"
 )
 
@@ -22,7 +23,15 @@ func (h *userHandler) RegisterUser(c *gin.Context) {
 	// store request data to input variable
 	err := c.ShouldBindJSON(&input)
 	if err != nil {
-		response := helper.APIResponse("Register user failed", http.StatusBadRequest, "error", nil)
+		// store errors to slice
+		var errors []string
+		for _, e := range err.(validator.ValidationErrors) {
+			errors = append(errors, e.Error())
+		}
+		// store slice of errors to object errors
+		errorMessage := gin.H{"errors": errors}
+		// construct response
+		response := helper.APIResponse("Register user failed", http.StatusBadRequest, "error", errorMessage)
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
