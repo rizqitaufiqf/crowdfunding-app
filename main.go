@@ -36,13 +36,15 @@ func main() {
 
 	fmt.Println("Connection to database successfully")
 	userRepository := user.NewRepository(db)
+	userService := user.NewService(userRepository)
 
-	usr := user.User{
-		ID:   "139d727b-bda9-4978-9cef-61767ee784c7",
-		Name: "rere",
-	}
+	userInput := user.RegisterUserInput{}
+	userInput.Name = "Rere"
+	userInput.Email = "rere@mail.com"
+	userInput.Occupation = "programmer"
+	userInput.Password = "rere"
 
-	save, err := userRepository.Save(usr)
+	save, err := userService.RegisterUser(userInput)
 	if err != nil {
 		return
 	}
