@@ -1,8 +1,10 @@
 package main
 
 import (
+	"crowdfunding/handler"
 	"crowdfunding/user"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -35,19 +37,23 @@ func main() {
 	}
 
 	fmt.Println("Connection to database successfully")
+	// init User Repository
 	userRepository := user.NewRepository(db)
+	// init User Service
 	userService := user.NewService(userRepository)
+	// init User Handler(Controller)
+	userHandler := handler.NewUserHandler(userService)
 
-	userInput := user.RegisterUserInput{}
-	userInput.Name = "Rere"
-	userInput.Email = "rere@mail.com"
-	userInput.Occupation = "programmer"
-	userInput.Password = "rere"
-
-	save, err := userService.RegisterUser(userInput)
+	// init router
+	router := gin.Default()
+	// group router endpoint
+	api := router.Group("/api/v1")
+	// generate endpoint
+	api.POST("/users", userHandler.RegisterUser)
+	// run web service
+	err = router.Run()
 	if err != nil {
-		return
+		log.Fatal(err.Error())
 	}
-	fmt.Println(save)
 
 }
