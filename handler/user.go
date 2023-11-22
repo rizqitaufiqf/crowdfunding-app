@@ -22,12 +22,16 @@ func (h *userHandler) RegisterUser(c *gin.Context) {
 	// store request data to input variable
 	err := c.ShouldBindJSON(&input)
 	if err != nil {
-		c.JSON(http.StatusBadGateway, nil)
+		response := helper.APIResponse("Register user failed", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
 	}
 	// register user
 	usr, err := h.userService.RegisterUser(input)
 	if err != nil {
-		c.JSON(http.StatusBadGateway, nil)
+		response := helper.APIResponse("Register user failed", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
 	}
 	// format user response
 	formatter := user.FormatUser(usr, "")
