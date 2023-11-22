@@ -13,7 +13,6 @@ type User struct {
 	Email          string
 	Role           string
 	PasswordHash   string
-	Token          string
 	AvatarFileName string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
