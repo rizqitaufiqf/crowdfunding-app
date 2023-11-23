@@ -10,6 +10,7 @@ type Service interface {
 	RegisterUser(input RegisterUserInput) (User, error)
 	Login(input LoginInput) (User, error)
 	IsEmailAvailable(input CheckEmailInput) (bool, error)
+	SaveAvatar(ID string, imageLocation string) (User, error)
 }
 
 type service struct {
@@ -23,7 +24,7 @@ func NewService(repository Repository) *service {
 
 func (s *service) RegisterUser(input RegisterUserInput) (User, error) {
 	user := User{}
-	user.ID = uuid.New()
+	user.ID = uuid.New().String()
 	user.Name = input.Name
 	user.Occupation = input.Occupation
 	user.Email = input.Email
@@ -31,7 +32,6 @@ func (s *service) RegisterUser(input RegisterUserInput) (User, error) {
 	if err != nil {
 		return user, err
 	}
-
 	user.PasswordHash = string(passwordHash)
 	user.Role = "user"
 
@@ -45,12 +45,12 @@ func (s *service) RegisterUser(input RegisterUserInput) (User, error) {
 func (s *service) Login(input LoginInput) (User, error) {
 	email := input.Email
 	password := input.Password
-
 	usr, err := s.repository.FindByEmail(email)
 	if err != nil {
 		return usr, err
 	}
-	if usr.ID.String() == "00000000-0000-0000-0000-000000000000" {
+
+	if usr.ID == "00000000-0000-0000-0000-000000000000" {
 		return usr, errors.New("invalid email or password")
 	}
 
@@ -58,20 +58,35 @@ func (s *service) Login(input LoginInput) (User, error) {
 	if err != nil {
 		return usr, errors.New("invalid email or password")
 	}
+
 	return usr, nil
 }
 
 func (s *service) IsEmailAvailable(input CheckEmailInput) (bool, error) {
 	email := input.Email
-
 	usr, err := s.repository.FindByEmail(email)
 	if err != nil {
 		return false, err
 	}
 
-	if usr.ID.String() == "00000000-0000-0000-0000-000000000000" {
+	if usr.ID == "00000000-0000-0000-0000-000000000000" {
 		return true, nil
 	}
 
 	return false, nil
+}
+
+func (s *service) SaveAvatar(ID string, imageLocation string) (User, error) {
+	usr, err := s.repository.FindByID(ID)
+	if err != nil {
+		return usr, err
+	}
+
+	usr.AvatarFileName = imageLocation
+	updateUser, err := s.repository.Update(usr)
+	if err != nil {
+		return updateUser, err
+	}
+
+	return updateUser, nil
 }

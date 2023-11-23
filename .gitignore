@@ -1,5 +1,6 @@
-Source _ Asset
+Source_Asset
 tmp
+images
 
 .idea
 .env*

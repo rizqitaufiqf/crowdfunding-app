@@ -1,13 +1,10 @@
 package user
 
-import (
-	"github.com/google/uuid"
-	"time"
-)
+import "time"
 
 // User Model
 type User struct {
-	ID             uuid.UUID
+	ID             string
 	Name           string
 	Occupation     string
 	Email          string
