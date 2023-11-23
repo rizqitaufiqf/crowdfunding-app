@@ -50,6 +50,7 @@ func main() {
 	api := router.Group("/api/v1")
 	// generate endpoint
 	api.POST("/users", userHandler.RegisterUser)
+	api.POST("/login", userHandler.Login)
 	// run web service
 	err = router.Run("localhost:8080")
 	if err != nil {

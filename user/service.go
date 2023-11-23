@@ -1,12 +1,14 @@
 package user
 
 import (
+	"errors"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Service interface {
 	RegisterUser(input RegisterUserInput) (User, error)
+	Login(input LoginInput) (User, error)
 }
 
 type service struct {
@@ -37,4 +39,23 @@ func (s *service) RegisterUser(input RegisterUserInput) (User, error) {
 		return newUser, err
 	}
 	return newUser, nil
+}
+
+func (s *service) Login(input LoginInput) (User, error) {
+	email := input.Email
+	password := input.Password
+
+	usr, err := s.repository.FindByEmail(email)
+	if err != nil {
+		return usr, err
+	}
+	if usr.ID.String() == "00000000-0000-0000-0000-000000000000" {
+		return usr, errors.New("invalid email or password")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(usr.PasswordHash), []byte(password))
+	if err != nil {
+		return usr, errors.New("invalid email or password")
+	}
+	return usr, nil
 }
