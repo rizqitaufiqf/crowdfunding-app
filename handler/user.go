@@ -4,9 +4,11 @@ import (
 	"crowdfunding/auth"
 	"crowdfunding/helper"
 	"crowdfunding/user"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -115,15 +117,32 @@ func (h *userHandler) CheckEmail(c *gin.Context) {
 func (h *userHandler) UploadAvatar(c *gin.Context) {
 	file, err := c.FormFile("avatar")
 	if err != nil {
-		data := gin.H{"is_uploaded": false}
+		data := gin.H{"is_uploaded": false, "error": err.Error()}
 		response := helper.APIResponse("Upload avatar failed", http.StatusBadRequest, "error", data)
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
+
+	// get user data from middleware
+	usr := c.MustGet("currentUser").(user.User)
+	userID := usr.ID
+	userIDSplit := strings.Split(userID, "-")[4]
+	currentImage := usr.AvatarFileName
+
+	// delete current images
+	if currentImage != "" {
+		if err := os.Remove(currentImage); err != nil {
+			fmt.Println("user doesn't have images.", err.Error())
+		}
+	}
+
+	// rename images
 	extension := filepath.Ext(file.Filename)
 	randomText := strings.Split(uuid.New().String(), "-")[4]
-	fileName := strings.TrimSuffix(file.Filename, extension)
-	filePath := "images/" + fileName + "-" + randomText + extension
+	randomText2 := strings.Split(uuid.New().String(), "-")[4]
+	//fileName := strings.TrimSuffix(file.Filename, extension)
+	//filePath := "images/" + fileName + "-" + randomText + "-" + userIDSplit + extension
+	filePath := "images/" + randomText + randomText2 + userIDSplit + extension
 	if err := c.SaveUploadedFile(file, filePath); err != nil {
 		data := gin.H{"is_uploaded": false, "error": err.Error()}
 		response := helper.APIResponse("Upload avatar failed", http.StatusBadRequest, "error", data)
@@ -131,7 +150,7 @@ func (h *userHandler) UploadAvatar(c *gin.Context) {
 		return
 	}
 
-	userID := "36c96295-4b5f-4a81-8cc5-4ee61e3bb3e2" // for now is hardcoded
+	// save image location to db
 	_, err = h.userService.SaveAvatar(userID, filePath)
 	if err != nil {
 		data := gin.H{"is_uploaded": false, "error": err.Error()}
