@@ -47,6 +47,7 @@ func main() {
 	campaignRepository := campaign.NewRepository(db)
 	// init Service
 	userService := user.NewService(userRepository)
+	campaignService := campaign.NewService(campaignRepository)
 	authService := auth.NewService()
 	// init Handler(Controller)
 	userHandler := handler.NewUserHandler(userService, authService)
@@ -54,18 +55,9 @@ func main() {
 	//* Test Campaign Repository
 	fmt.Println("TEST")
 	fmt.Println("TEST")
-	campaigns, err := campaignRepository.FindAll()
-	if err != nil {
-		fmt.Println("ERROR", err)
-	}
-	for _, camp := range campaigns {
-		fmt.Println(camp.Name)
-		if len(camp.CampaignImages) > 0 {
-			fmt.Println("\t", camp.CampaignImages[0].FileName)
-		}
-	}
-	fmt.Println("TEST")
-	fmt.Println(campaignRepository.FindAllByID("36c96295-4b5f-4a81-8cc5-4ee61e3bb3e2"))
+	campaigns, _ := campaignService.FindCampaigns("3b9b9389-5310-46e0-a114-09abd2a18358")
+	fmt.Println(len(campaigns))
+	fmt.Println(campaigns)
 	//* End of Test Campaign Repository
 
 	// init router
