@@ -142,7 +142,7 @@ func (h *userHandler) UploadAvatar(c *gin.Context) {
 	randomText2 := strings.Split(uuid.New().String(), "-")[4]
 	//fileName := strings.TrimSuffix(file.Filename, extension)
 	//filePath := "images/" + fileName + "-" + randomText + "-" + userIDSplit + extension
-	filePath := "images/" + randomText + randomText2 + userIDSplit + extension
+	filePath := "images/user-avatar/" + randomText + randomText2 + userIDSplit + extension
 	if err := c.SaveUploadedFile(file, filePath); err != nil {
 		data := gin.H{"is_uploaded": false, "error": err.Error()}
 		response := helper.APIResponse("Upload avatar failed", http.StatusBadRequest, "error", data)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"crowdfunding/auth"
+	"crowdfunding/campaign"
 	"crowdfunding/handler"
 	"crowdfunding/helper"
 	"crowdfunding/user"
@@ -36,19 +37,36 @@ func main() {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s", host, username, password, databaseName, port, sslMode, timezone)
 	// connect to database
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
 	fmt.Println("Connection to database successfully")
-	// init User Repository
+
+	// init Repository
 	userRepository := user.NewRepository(db)
-	// init User Service
+	campaignRepository := campaign.NewRepository(db)
+	// init Service
 	userService := user.NewService(userRepository)
 	authService := auth.NewService()
-	// init User Handler(Controller)
+	// init Handler(Controller)
 	userHandler := handler.NewUserHandler(userService, authService)
+
+	//* Test Campaign Repository
+	fmt.Println("TEST")
+	fmt.Println("TEST")
+	campaigns, err := campaignRepository.FindAll()
+	if err != nil {
+		fmt.Println("ERROR", err)
+	}
+	for _, camp := range campaigns {
+		fmt.Println(camp.Name)
+		if len(camp.CampaignImages) > 0 {
+			fmt.Println("\t", camp.CampaignImages[0].FileName)
+		}
+	}
+	fmt.Println("TEST")
+	fmt.Println(campaignRepository.FindAllByID("36c96295-4b5f-4a81-8cc5-4ee61e3bb3e2"))
+	//* End of Test Campaign Repository
 
 	// init router
 	router := gin.Default()
