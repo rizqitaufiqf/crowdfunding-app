@@ -55,6 +55,8 @@ func main() {
 
 	// init router
 	router := gin.Default()
+	// add static route to access images
+	router.Static("/images", "./images")
 	// group router endpoint
 	api := router.Group("/api/v1")
 	// generate users endpoint
