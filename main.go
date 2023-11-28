@@ -51,24 +51,19 @@ func main() {
 	authService := auth.NewService()
 	// init Handler(Controller)
 	userHandler := handler.NewUserHandler(userService, authService)
-
-	//* Test Campaign Repository
-	fmt.Println("TEST")
-	fmt.Println("TEST")
-	campaigns, _ := campaignService.FindCampaigns("3b9b9389-5310-46e0-a114-09abd2a18358")
-	fmt.Println(len(campaigns))
-	fmt.Println(campaigns)
-	//* End of Test Campaign Repository
+	campaignHandler := handler.NewCampaignHandler(campaignService)
 
 	// init router
 	router := gin.Default()
 	// group router endpoint
 	api := router.Group("/api/v1")
-	// generate endpoint
+	// generate users endpoint
 	api.POST("/users", userHandler.RegisterUser)
 	api.POST("/login", userHandler.Login)
 	api.POST("/check-email", userHandler.CheckEmail)
 	api.POST("/avatars", authMiddleware(authService, userService), userHandler.UploadAvatar)
+	// generate campaigns endpoint
+	api.GET("/campaigns", campaignHandler.GetCampaigns)
 	// run web service
 	err = router.Run("localhost:8080")
 	if err != nil {
