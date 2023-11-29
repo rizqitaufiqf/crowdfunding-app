@@ -2,6 +2,7 @@ package campaign
 
 import (
 	"crowdfunding/helper"
+	"errors"
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
 	"strings"
@@ -11,6 +12,7 @@ type Service interface {
 	GetCampaigns(UserID string) ([]Campaign, error)
 	GetCampaignByID(input GetCampaignDTO) (Campaign, error)
 	CreateCampaign(input CreateCampaignDTO) (Campaign, error)
+	UpdateCampaign(inputID GetCampaignDTO, inputData CreateCampaignDTO) (Campaign, error)
 }
 
 type service struct {
@@ -63,4 +65,28 @@ func (s *service) CreateCampaign(input CreateCampaignDTO) (Campaign, error) {
 	}
 
 	return campaign, err
+}
+
+func (s *service) UpdateCampaign(inputID GetCampaignDTO, inputData CreateCampaignDTO) (Campaign, error) {
+	campaign, err := s.repository.FindByCampaignID(inputID.ID)
+	if err != nil {
+		return campaign, err
+	}
+
+	if campaign.UserID != inputData.User.ID {
+		return campaign, errors.New("invalid user")
+	}
+
+	campaign.Name = inputData.Name
+	campaign.ShortDescription = inputData.ShortDescription
+	campaign.Description = inputData.Description
+	campaign.GoalAmount = inputData.GoalAmount
+	campaign.Perks = inputData.Perks
+
+	updatedCampaign, err := s.repository.UpdateCampaign(campaign)
+	if err != nil {
+		return updatedCampaign, nil
+	}
+
+	return updatedCampaign, nil
 }

@@ -1,7 +1,6 @@
 package helper
 
 import (
-	"fmt"
 	"github.com/go-playground/validator/v10"
 	"strings"
 )
@@ -43,7 +42,6 @@ func FormatValidationError(err error) []string {
 }
 
 func SanitizePerksSplitString(input string) string {
-	fmt.Println(input)
 	parts := strings.FieldsFunc(input, func(r rune) bool {
 		return r == ';'
 	})
