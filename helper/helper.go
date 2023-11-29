@@ -1,6 +1,10 @@
 package helper
 
-import "github.com/go-playground/validator/v10"
+import (
+	"fmt"
+	"github.com/go-playground/validator/v10"
+	"strings"
+)
 
 type Response struct {
 	Meta Meta        `json:"meta"` // when "Meta" is used/converted to json, use "meta" instead of "Meta" as object key
@@ -36,4 +40,12 @@ func FormatValidationError(err error) []string {
 	}
 
 	return errors
+}
+
+func SanitizePerksSplitString(input string) string {
+	fmt.Println(input)
+	parts := strings.FieldsFunc(input, func(r rune) bool {
+		return r == ';'
+	})
+	return strings.Join(parts, ";")
 }

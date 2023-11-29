@@ -91,7 +91,7 @@ func FormatCampaignDetail(campaign Campaign) CampaignDetailFormatter {
 		GoalAmount:       campaign.GoalAmount,
 		CurrentAmount:    campaign.CurrentAmount,
 		Slug:             campaign.Slug,
-		Perks:            strings.Split(campaign.Perks, "::::"),
+		Perks:            strings.Split(campaign.Perks, ";"),
 		CampaignImages:   images,
 	}
 

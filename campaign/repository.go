@@ -6,6 +6,7 @@ type Repository interface {
 	FindAll() ([]Campaign, error)
 	FindAllByUserID(UserId string) ([]Campaign, error)
 	FindByCampaignID(campaignID string) (Campaign, error)
+	Save(campaign Campaign) (Campaign, error)
 }
 
 type repository struct {
@@ -44,5 +45,15 @@ func (r *repository) FindByCampaignID(campaignID string) (Campaign, error) {
 	if err != nil {
 		return campaign, err
 	}
+
+	return campaign, nil
+}
+
+func (r *repository) Save(campaign Campaign) (Campaign, error) {
+	err := r.db.Create(&campaign).Error
+	if err != nil {
+		return campaign, err
+	}
+
 	return campaign, nil
 }

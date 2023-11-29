@@ -66,6 +66,7 @@ func main() {
 	api.POST("/avatars", authMiddleware(authService, userService), userHandler.UploadAvatar)
 	// generate campaigns endpoint
 	api.GET("/campaigns", campaignHandler.GetCampaigns)
+	api.POST("/campaigns", authMiddleware(authService, userService), campaignHandler.CreateCampaign)
 	api.GET("/campaigns/:id", campaignHandler.GetCampaignDetail)
 	// run web service
 	err = router.Run("localhost:8080")
