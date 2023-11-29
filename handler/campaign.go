@@ -31,7 +31,7 @@ func (h *campaignHandler) GetCampaigns(c *gin.Context) {
 }
 
 func (h *campaignHandler) GetCampaignDetail(c *gin.Context) {
-	var input campaign.GetCampaignDetailInput
+	var input campaign.GetCampaignDTO
 
 	err := c.ShouldBindUri(&input)
 	if err != nil {

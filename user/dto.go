@@ -1,18 +1,18 @@
 package user
 
-// RegisterUserInput -> mapping user register request
-type RegisterUserInput struct {
+// RegisterUserDTO -> mapping user register request
+type RegisterUserDTO struct {
 	Name       string `json:"name" binding:"required"`
 	Occupation string `json:"occupation" binding:"required"`
 	Email      string `json:"email" binding:"required,email"`
 	Password   string `json:"password" binding:"required"`
 }
 
-type LoginInput struct {
+type LoginDTO struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
-type CheckEmailInput struct {
+type CheckEmailDTO struct {
 	Email string `json:"email" binding:"required"`
 }

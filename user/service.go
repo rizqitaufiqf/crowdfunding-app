@@ -7,9 +7,9 @@ import (
 )
 
 type Service interface {
-	RegisterUser(input RegisterUserInput) (User, error)
-	Login(input LoginInput) (User, error)
-	IsEmailAvailable(input CheckEmailInput) (bool, error)
+	RegisterUser(input RegisterUserDTO) (User, error)
+	Login(input LoginDTO) (User, error)
+	IsEmailAvailable(input CheckEmailDTO) (bool, error)
 	SaveAvatar(ID string, imageLocation string) (User, error)
 	GetUserByID(ID string) (User, error)
 }
@@ -23,7 +23,7 @@ func NewService(repository Repository) *service {
 	return &service{repository}
 }
 
-func (s *service) RegisterUser(input RegisterUserInput) (User, error) {
+func (s *service) RegisterUser(input RegisterUserDTO) (User, error) {
 	user := User{}
 	user.ID = uuid.New().String()
 	user.Name = input.Name
@@ -43,7 +43,7 @@ func (s *service) RegisterUser(input RegisterUserInput) (User, error) {
 	return newUser, nil
 }
 
-func (s *service) Login(input LoginInput) (User, error) {
+func (s *service) Login(input LoginDTO) (User, error) {
 	email := input.Email
 	password := input.Password
 	usr, err := s.repository.FindByEmail(email)
@@ -63,7 +63,7 @@ func (s *service) Login(input LoginInput) (User, error) {
 	return usr, nil
 }
 
-func (s *service) IsEmailAvailable(input CheckEmailInput) (bool, error) {
+func (s *service) IsEmailAvailable(input CheckEmailDTO) (bool, error) {
 	email := input.Email
 	usr, err := s.repository.FindByEmail(email)
 	if err != nil {

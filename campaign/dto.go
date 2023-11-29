@@ -1,5 +1,5 @@
 package campaign
 
-type GetCampaignDetailInput struct {
+type GetCampaignDTO struct {
 	ID string `uri:"id" binding:"required"`
 }
