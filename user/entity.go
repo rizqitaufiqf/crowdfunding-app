@@ -13,5 +13,5 @@ type User struct {
 	AvatarFileName string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
-	DeletedAt      time.Time
+	DeletedAt      *time.Time // make this type to a pointer which mean it can be nil value
 }
