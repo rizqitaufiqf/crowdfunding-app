@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"errors"
 	"github.com/go-playground/validator/v10"
 	"strings"
 )
@@ -33,12 +34,16 @@ func APIResponse(message string, code int, status string, data interface{}) Resp
 
 func FormatValidationError(err error) []string {
 	// store errors to slice
-	var errors []string
-	for _, e := range err.(validator.ValidationErrors) {
-		errors = append(errors, e.Error())
+	var ve validator.ValidationErrors
+	if errors.As(err, &ve) {
+		var errorsSlice []string
+		for _, e := range ve {
+			errorsSlice = append(errorsSlice, e.Error())
+		}
+		return errorsSlice
 	}
 
-	return errors
+	return []string{err.Error()}
 }
 
 func SanitizePerksSplitString(input string) string {

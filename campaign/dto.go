@@ -14,3 +14,9 @@ type CreateCampaignDTO struct {
 	Perks            string `json:"perks" binding:"required"`
 	User             user.User
 }
+
+type CreateCampaignImageDTO struct {
+	CampaignID string `form:"campaign_id" binding:"required"`
+	IsPrimary  *bool  `form:"is_primary" binding:"required,boolean"`
+	User       user.User
+}

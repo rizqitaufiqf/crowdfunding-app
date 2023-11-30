@@ -4,8 +4,11 @@ import (
 	"crowdfunding/campaign"
 	"crowdfunding/helper"
 	"crowdfunding/user"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"net/http"
+	"path/filepath"
 	"strings"
 )
 
@@ -107,5 +110,52 @@ func (h *campaignHandler) UpdateCampaign(c *gin.Context) {
 	}
 
 	response := helper.APIResponse("Update campaign successfully", http.StatusOK, "success", campaign.FormatCampaign(updatedCampaign))
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *campaignHandler) UploadImage(c *gin.Context) {
+	var input campaign.CreateCampaignImageDTO
+	if err := c.ShouldBind(&input); err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessage := gin.H{"is_uploaded": false, "errors": errors}
+		response := helper.APIResponse("h1 Failed to upload campaign image", http.StatusBadRequest, "error", errorMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	file, err := c.FormFile("campaign_image")
+	if err != nil {
+		data := gin.H{"is_uploaded": false, "errors": []string{err.Error()}}
+		response := helper.APIResponse("h2 Failed to upload campaign image", http.StatusBadRequest, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	usr := c.MustGet("currentUser").(user.User)
+	userID := usr.ID
+	userIDSplit := strings.Split(userID, "-")[4]
+
+	extension := filepath.Ext(file.Filename)
+	randomText := strings.Split(uuid.New().String(), "-")[4]
+	randomText2 := strings.Split(uuid.New().String(), "-")[4]
+	filePath := fmt.Sprintf("images/campaigns/%s/%s/%s%s%s%s", userID, input.CampaignID, randomText, randomText2, userIDSplit, extension)
+
+	input.User = usr
+	if _, err := h.service.SaveCampaignImage(input, filePath); err != nil {
+		data := gin.H{"is_uploaded": false, "errors": []string{err.Error()}}
+		response := helper.APIResponse("h4 Failed to upload campaign image", http.StatusBadRequest, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	if err := c.SaveUploadedFile(file, filePath); err != nil {
+		data := gin.H{"is_uploaded": false, "errors": []string{err.Error()}}
+		response := helper.APIResponse("h3 Failed to upload campaign image", http.StatusBadRequest, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	data := gin.H{"is_uploaded": true}
+	response := helper.APIResponse("Campaign image successfully uploaded", http.StatusOK, "success", data)
 	c.JSON(http.StatusOK, response)
 }
