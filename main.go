@@ -5,6 +5,7 @@ import (
 	"crowdfunding/campaign"
 	"crowdfunding/handler"
 	"crowdfunding/helper"
+	"crowdfunding/transactions"
 	"crowdfunding/user"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -45,13 +46,16 @@ func main() {
 	// init Repository
 	userRepository := user.NewRepository(db)
 	campaignRepository := campaign.NewRepository(db)
+	transactionRepository := transactions.NewRepository(db)
 	// init Service
 	userService := user.NewService(userRepository)
 	campaignService := campaign.NewService(campaignRepository)
 	authService := auth.NewService()
+	transactionService := transactions.NewService(transactionRepository, campaignRepository)
 	// init Handler(Controller)
 	userHandler := handler.NewUserHandler(userService, authService)
 	campaignHandler := handler.NewCampaignHandler(campaignService)
+	transactionHandler := handler.NewTansactionHandler(transactionService)
 
 	// init router
 	router := gin.Default()
@@ -70,6 +74,8 @@ func main() {
 	api.GET("/campaigns/:id", campaignHandler.GetCampaignDetail)
 	api.PUT("/campaigns/:id", authMiddleware(authService, userService), campaignHandler.UpdateCampaign)
 	api.POST("/campaign-images", authMiddleware(authService, userService), campaignHandler.UploadImage)
+	// generate transaction endpoint
+	api.GET("/campaigns/:id/transactions", authMiddleware(authService, userService), transactionHandler.GetCampaignTransaction)
 	// run web service
 	err = router.Run("localhost:8080")
 	if err != nil {
