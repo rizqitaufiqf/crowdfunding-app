@@ -11,14 +11,15 @@ type service struct {
 }
 
 type Service interface {
-	GetTransactionByCampaignID(input GetCampaignTransactionDTO) ([]Transaction, error)
+	GetTransactionsByCampaignID(input GetCampaignTransactionDTO) ([]Transaction, error)
+	GetTransactionsByUserID(userID string) ([]Transaction, error)
 }
 
 func NewService(repository Repository, campaignRepository campaign.Repository) *service {
 	return &service{repository, campaignRepository}
 }
 
-func (s *service) GetTransactionByCampaignID(input GetCampaignTransactionDTO) ([]Transaction, error) {
+func (s *service) GetTransactionsByCampaignID(input GetCampaignTransactionDTO) ([]Transaction, error) {
 	camp, err := s.campaignRepository.FindByCampaignID(input.ID)
 	if err != nil {
 		return []Transaction{}, err
@@ -34,4 +35,13 @@ func (s *service) GetTransactionByCampaignID(input GetCampaignTransactionDTO) ([
 	}
 
 	return transaction, nil
+}
+
+func (s *service) GetTransactionsByUserID(userID string) ([]Transaction, error) {
+	transactions, err := s.repository.GetByUserID(userID)
+	if err != nil {
+		return transactions, err
+	}
+
+	return transactions, nil
 }
