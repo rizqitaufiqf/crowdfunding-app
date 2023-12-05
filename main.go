@@ -8,6 +8,7 @@ import (
 	"crowdfunding/transactions"
 	"crowdfunding/user"
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
@@ -55,10 +56,12 @@ func main() {
 	// init Handler(Controller)
 	userHandler := handler.NewUserHandler(userService, authService)
 	campaignHandler := handler.NewCampaignHandler(campaignService)
-	transactionHandler := handler.NewTansactionHandler(transactionService)
+	transactionHandler := handler.NewTransactionHandler(transactionService)
 
 	// init router
 	router := gin.Default()
+	// init cors
+	router.Use(cors.Default())
 	// add static route to access images
 	router.Static("/images", "./images")
 	// group router endpoint
