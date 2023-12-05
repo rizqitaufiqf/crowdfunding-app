@@ -71,6 +71,7 @@ func main() {
 	api.POST("/login", userHandler.Login)
 	api.POST("/check-email", userHandler.CheckEmail)
 	api.POST("/avatars", authMiddleware(authService, userService), userHandler.UploadAvatar)
+	api.GET("/users/fetch", authMiddleware(authService, userService), userHandler.FetchUser)
 	// generate campaigns endpoint
 	api.GET("/campaigns", campaignHandler.GetCampaigns)
 	api.POST("/campaigns", authMiddleware(authService, userService), campaignHandler.CreateCampaign)
