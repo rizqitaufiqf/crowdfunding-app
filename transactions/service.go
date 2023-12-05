@@ -3,25 +3,29 @@ package transactions
 import (
 	"crowdfunding/campaign"
 	"crowdfunding/helper"
-	"crowdfunding/payment"
+	"crowdfunding/user"
 	"errors"
 	"github.com/google/uuid"
+	"github.com/midtrans/midtrans-go"
+	"github.com/midtrans/midtrans-go/snap"
+	"os"
 )
 
 type service struct {
 	repository         Repository
 	campaignRepository campaign.Repository
-	paymentService     payment.Service
 }
 
 type Service interface {
 	GetTransactionsByCampaignID(input GetCampaignTransactionDTO) ([]Transaction, error)
 	GetTransactionsByUserID(userID string) ([]Transaction, error)
 	CreateTransaction(input CreateTransactionDTO) (Transaction, error)
+	GetPaymentURL(transaction Transaction, user user.User) (string, error)
+	ProcessPayment(input TransactionNotificationDTO) error
 }
 
-func NewService(repository Repository, campaignRepository campaign.Repository, paymentService payment.Service) *service {
-	return &service{repository, campaignRepository, paymentService}
+func NewService(repository Repository, campaignRepository campaign.Repository) *service {
+	return &service{repository, campaignRepository}
 }
 
 func (s *service) GetTransactionsByCampaignID(input GetCampaignTransactionDTO) ([]Transaction, error) {
@@ -66,11 +70,11 @@ func (s *service) CreateTransaction(input CreateTransactionDTO) (Transaction, er
 		return newTransaction, err
 	}
 
-	paymentTransaction := payment.Transaction{
+	paymentTransaction := Transaction{
 		ID:     newTransaction.ID,
 		Amount: newTransaction.Amount,
 	}
-	paymentURL, err := s.paymentService.GetPaymentURL(paymentTransaction, input.User)
+	paymentURL, err := s.GetPaymentURL(paymentTransaction, input.User)
 	if err != nil {
 		return newTransaction, err
 	}
@@ -82,4 +86,66 @@ func (s *service) CreateTransaction(input CreateTransactionDTO) (Transaction, er
 	}
 
 	return updatedTransaction, nil
+}
+
+func (s *service) GetPaymentURL(transaction Transaction, user user.User) (string, error) {
+	var sn = snap.Client{}
+	sn.New(os.Getenv("MIDTRANS_SERVER_KEY"), midtrans.Sandbox)
+
+	req := &snap.Request{
+		CustomerDetail: &midtrans.CustomerDetails{
+			Email: user.Email,
+			FName: user.Name,
+		},
+		TransactionDetails: midtrans.TransactionDetails{
+			OrderID:  transaction.ID,
+			GrossAmt: int64(transaction.Amount),
+		},
+	}
+
+	snapResp, err := sn.CreateTransaction(req)
+	if err != nil {
+		return "", err
+	}
+
+	return snapResp.RedirectURL, nil
+}
+
+func (s *service) ProcessPayment(input TransactionNotificationDTO) error {
+	transactionID := input.OrderID
+
+	transaction, err := s.repository.GetByTransactionID(transactionID)
+	if err != nil {
+		return err
+	}
+
+	transaction.MidtransTransactionID = input.TransactionID
+	if input.PaymentType == "credit_card" && input.TransactionStatus == "capture" && input.FraudStatus == "accept" {
+		transaction.Status = "paid"
+	} else if input.TransactionStatus == "settlement" {
+		transaction.Status = "paid"
+	} else if input.TransactionStatus == "deny" || input.TransactionStatus == "expire" || input.TransactionStatus == "cancel" {
+		transaction.Status = "canceled"
+	}
+
+	updatedTransaction, err := s.repository.Update(transaction)
+	if err != nil {
+		return err
+	}
+
+	camp, err := s.campaignRepository.FindByCampaignID(updatedTransaction.CampaignID)
+	if err != nil {
+		return err
+	}
+
+	if updatedTransaction.Status == "paid" {
+		camp.BackerCount = camp.BackerCount + 1
+		camp.CurrentAmount = camp.CurrentAmount + updatedTransaction.Amount
+
+		if _, err := s.campaignRepository.UpdateCampaign(camp); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

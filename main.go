@@ -5,7 +5,6 @@ import (
 	"crowdfunding/campaign"
 	"crowdfunding/handler"
 	"crowdfunding/helper"
-	"crowdfunding/payment"
 	"crowdfunding/transactions"
 	"crowdfunding/user"
 	"fmt"
@@ -52,8 +51,7 @@ func main() {
 	userService := user.NewService(userRepository)
 	campaignService := campaign.NewService(campaignRepository)
 	authService := auth.NewService()
-	paymentService := payment.NewService()
-	transactionService := transactions.NewService(transactionRepository, campaignRepository, paymentService)
+	transactionService := transactions.NewService(transactionRepository, campaignRepository)
 	// init Handler(Controller)
 	userHandler := handler.NewUserHandler(userService, authService)
 	campaignHandler := handler.NewCampaignHandler(campaignService)
@@ -80,8 +78,11 @@ func main() {
 	api.GET("/campaigns/:id/transactions", authMiddleware(authService, userService), transactionHandler.GetCampaignTransaction)
 	api.GET("/transactions", authMiddleware(authService, userService), transactionHandler.GetUserTransactions)
 	api.POST("/transactions", authMiddleware(authService, userService), transactionHandler.CreateTransaction)
+	api.POST("/transactions/notification", transactionHandler.GetNotification)
 	// run web service
-	err = router.Run("localhost:8080")
+	appHost := os.Getenv("APP_HOST")
+	appPort := os.Getenv("APP_PORT")
+	err = router.Run(appHost + ":" + appPort)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
