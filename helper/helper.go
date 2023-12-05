@@ -2,8 +2,11 @@ package helper
 
 import (
 	"errors"
+	"fmt"
 	"github.com/go-playground/validator/v10"
+	"math/rand"
 	"strings"
+	"time"
 )
 
 type Response struct {
@@ -51,4 +54,15 @@ func SanitizePerksSplitString(input string) string {
 		return r == ';'
 	})
 	return strings.Join(parts, ";")
+}
+
+func GenerateTransactionCode() string {
+	source := rand.NewSource(time.Now().UnixNano())
+	rng := rand.New(source)
+
+	currentDate := time.Now().Format("200601021504")
+	randomNumber := rng.Intn(1000000)
+	transactionCode := fmt.Sprintf("TRX%s%06d", currentDate, randomNumber)
+
+	return transactionCode
 }

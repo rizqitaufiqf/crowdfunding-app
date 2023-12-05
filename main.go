@@ -77,6 +77,7 @@ func main() {
 	// generate transaction endpoint
 	api.GET("/campaigns/:id/transactions", authMiddleware(authService, userService), transactionHandler.GetCampaignTransaction)
 	api.GET("/transactions", authMiddleware(authService, userService), transactionHandler.GetUserTransactions)
+	api.POST("/transactions", authMiddleware(authService, userService), transactionHandler.CreateTransaction)
 	// run web service
 	err = router.Run("localhost:8080")
 	if err != nil {
