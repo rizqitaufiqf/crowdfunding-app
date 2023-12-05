@@ -23,6 +23,17 @@ type CampaignFormatter struct {
 	ImageURL string `json:"image_url"`
 }
 
+type CreateTransactionFormatter struct {
+	ID         string    `json:"id"`
+	UserID     string    `json:"user_id"`
+	CampaignID string    `json:"campaign_id"`
+	Amount     int       `json:"amount"`
+	Code       string    `json:"code"`
+	Status     string    `json:"status"`
+	PaymentURL string    `json:"payment_url"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
 func FormatCampaignTransaction(transaction Transaction) CampaignTransactionFormatter {
 	formatter := CampaignTransactionFormatter{
 		ID:        transaction.ID,
@@ -70,4 +81,19 @@ func FormatUserTransactions(transactions []Transaction) []UserTransactionFormatt
 	}
 
 	return transactionFormatter
+}
+
+func FormatCreateTransaction(transaction Transaction) CreateTransactionFormatter {
+	formatter := CreateTransactionFormatter{
+		ID:         transaction.ID,
+		UserID:     transaction.UserID,
+		CampaignID: transaction.CampaignID,
+		Amount:     transaction.Amount,
+		Code:       transaction.Code,
+		Status:     transaction.Status,
+		PaymentURL: transaction.PaymentURL,
+		CreatedAt:  transaction.CreatedAt,
+	}
+
+	return formatter
 }

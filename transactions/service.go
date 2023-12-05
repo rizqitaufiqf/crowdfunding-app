@@ -3,6 +3,7 @@ package transactions
 import (
 	"crowdfunding/campaign"
 	"crowdfunding/helper"
+	"crowdfunding/payment"
 	"errors"
 	"github.com/google/uuid"
 )
@@ -10,6 +11,7 @@ import (
 type service struct {
 	repository         Repository
 	campaignRepository campaign.Repository
+	paymentService     payment.Service
 }
 
 type Service interface {
@@ -18,8 +20,8 @@ type Service interface {
 	CreateTransaction(input CreateTransactionDTO) (Transaction, error)
 }
 
-func NewService(repository Repository, campaignRepository campaign.Repository) *service {
-	return &service{repository, campaignRepository}
+func NewService(repository Repository, campaignRepository campaign.Repository, paymentService payment.Service) *service {
+	return &service{repository, campaignRepository, paymentService}
 }
 
 func (s *service) GetTransactionsByCampaignID(input GetCampaignTransactionDTO) ([]Transaction, error) {
@@ -64,5 +66,20 @@ func (s *service) CreateTransaction(input CreateTransactionDTO) (Transaction, er
 		return newTransaction, err
 	}
 
-	return newTransaction, nil
+	paymentTransaction := payment.Transaction{
+		ID:     newTransaction.ID,
+		Amount: newTransaction.Amount,
+	}
+	paymentURL, err := s.paymentService.GetPaymentURL(paymentTransaction, input.User)
+	if err != nil {
+		return newTransaction, err
+	}
+
+	newTransaction.PaymentURL = paymentURL
+	updatedTransaction, err := s.repository.Update(newTransaction)
+	if err != nil {
+		return updatedTransaction, err
+	}
+
+	return updatedTransaction, nil
 }
