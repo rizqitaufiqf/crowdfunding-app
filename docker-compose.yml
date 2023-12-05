@@ -1,0 +1,72 @@
+# Execute (bcs error load custom env file)-> docker compose --env-file .env.db up -d
+
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:latest
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+  db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - crowdfunding-app-postgres-data:/var/lib/postgresql/data
+    env_file:
+      - .env.db
+    networks:
+      - crowdfunding-app
+
+  pgadmin:
+    user: root
+    image: dpage/pgadmin4
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - crowdfunding-app-postgres-data:/var/lib/pgadmin
+    env_file:
+      - .env.db
+    depends_on:
+      - db
+    networks:
+      - crowdfunding-app
+
+  cache:
+    image: redis:latest
+    env_file:
+      - .env.db
+    ports:
+      - "6379:6379"
+    networks:
+      - crowdfunding-app
+
+  redis-insight:
+    image: redislabs/redisinsight
+    ports:
+      - "8001:8001"
+    depends_on:
+      - cache
+    networks:
+      - crowdfunding-app
+
+volumes:
+  crowdfunding-app-postgres-data:
+
+networks:
+  crowdfunding-app:
